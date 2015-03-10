@@ -1,5 +1,5 @@
-# Ti*k*z examples
-This is a random collection of [Ti*k*z](https://www.ctan.org/pkg/pgf) examples. I wrote most of the code for some reason or another and decided to share the result – perhaps it is even useful for someone out there ...
+# Ti*k*Z examples
+This is a random collection of [Ti*k*Z](https://www.ctan.org/pkg/pgf) examples. I wrote most of the code for some reason or another and decided to share the result – perhaps it is even useful for someone out there ...
 
 The included pdf files are *not* meant to serve as documentation, they are there for convenience and should be viewed side by side with the source files if you wanna understand the TeX code. I tried to comment all crucial parts of the latter, although most if it should be pretty self-explanatory.
 
