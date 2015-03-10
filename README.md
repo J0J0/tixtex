@@ -5,6 +5,10 @@ The included pdf files are *not* meant to serve as documentation, they are there
 
 
 ## cay.tex – Cayley graph of Z * Z
+<div align="center">
+<img src="_img/cay.png" />
+</div>
+
 The macro `\drawGraph{n}` draws the *Cayley graph* of F<sub>2</sub> = Z ∗ Z up to the `n`-th branching point. 
 See [Cayley graph](http://en.wikipedia.org/wiki/Cayley_graph) on Wikipedia for details about Cayles graphs. Note that the (geometric realization of the) Cayley graph of F<sub>2</sub> is also the *universal covering space* of the "figure eight" space S<sup>1</sup> v S<sup>1</sup>.
 
@@ -12,6 +16,10 @@ Compilation of cay.tex takes a while which is due to `\drawGraph{9}` in the midd
 
 
 ## nikolaus.tex – barycentric subdivision
+<div align="center">
+<img src="_img/subdiv.png" />
+</div>
+
 There are
 * `\subdiv` which draws the (first) barycentric subdivision of a triangle and
 * `\subdivrec` which does the same for the n-th barycentric subdivision.
@@ -19,4 +27,8 @@ There are
 
 
 ## shuffle.tex – paths through an integer lattice
+<div align="center">
+<img src="_img/shuffle.png" />
+</div>
+
 The macro `\shuffle{p}{q}` draws all `(p,q)`-[shuffles](http://ncatlab.org/nlab/show/shuffle), i.e. all shortest paths through a `p x q` integer lattice (from one edge to the diagonally opposite).
