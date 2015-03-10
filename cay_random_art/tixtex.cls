@@ -1,0 +1,1 @@
+../tixtex.cls

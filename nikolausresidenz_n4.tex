@@ -1,0 +1,71 @@
+\documentclass{tixtex}
+\hypersetup{pdftitle={St. Nicholas residence at recursion depth 4}}
+            
+\usetikzlibrary{calc}
+
+\tikzset{%
+    Dpoint/.style={shape=circle,fill=#1,inner sep=1.3pt}, Dpoint/.default={blue},
+    Dshapefillgray/.style={fill=black!40, fill opacity=0.2},
+    Dline/.style={line width=0.7pt}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% see nikolaus.tex for documentation of the following code ...
+
+\makeatletter
+\newcommand{\subdivrec}[4]{
+    \ifnum#4 < 1
+        \draw [Dshapefillgray,Dline] (#1)--(#2)--(#3)--cycle;
+        \foreach \@c in {#1,#2,#3}
+            \path (\@c) node [Dpoint] {};
+    \else
+        \path
+            (barycentric cs:#1=1,#2=1) coordinate (m3r#4)
+            (barycentric cs:#2=1,#3=1) coordinate (m1r#4)
+            (barycentric cs:#1=1,#3=1) coordinate (m2r#4)
+            (barycentric cs:#1=1,#2=1,#3=1) coordinate (mMr#4);
+        \begingroup
+        \pgfmathtruncatemacro{\@reclevel}{#4-1}
+        \foreach \@cA/\@cB/\@cC in
+                {#1/m2r#4/mMr#4,   #1/m3r#4/mMr#4,
+                 #2/m1r#4/mMr#4,   #2/m3r#4/mMr#4,
+                 #3/m1r#4/mMr#4,   #3/m2r#4/mMr#4}
+            \edef\zz{\noexpand\subdivrec{\@cA}{\@cB}{\@cC}{\@reclevel}}\zz;
+        \endgroup
+    \fi
+}
+\makeatother
+
+\newcommand{\nikolausresidenz}[1]{
+    \begingroup
+    \newcommand{\xx}{14}
+    \newcommand{\yy}{14}
+    \newcommand{\xxh}{7}
+    \newcommand{\yyh}{7}
+    \newcommand{\yyt}{21}
+    \path
+        (0,0)       coordinate (Nld)
+        (\xx,0)     coordinate (Nrd)
+        (\xx,\yy)   coordinate (Nru)
+        (0,\yy)     coordinate (Nlu)
+        (\xxh,\yyh) coordinate (Nm)
+        (\xxh,\yyt) coordinate (Nt)
+    ;
+    \foreach \cA/\cB/\cC in 
+            {Nld/Nrd/Nm,    Nld/Nlu/Nm,
+             Nrd/Nru/Nm,    Nru/Nlu/Nm,
+             Nlu/Nru/Nt}
+        \subdivrec{\cA}{\cB}{\cC}{#1};
+    \endgroup
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+    \enlargethispage{1.5cm}%
+    \centering%
+    \begin{tikzpicture}
+        \nikolausresidenz{4}
+        \path (7,-1) node {\verb|\nikolausresidenz{4}|};
+    \end{tikzpicture}
+\end{document}

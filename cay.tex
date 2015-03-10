@@ -1,0 +1,251 @@
+\documentclass{tixtex}
+\hypersetup{pdftitle={Cayley graph of Z * Z}}
+
+\usepackage{letltxmacro}
+
+\usepackage{datetime}
+\count255=\time
+\multiply\count255 by\year
+\advance\count255 by\currentsecond
+\edef\randomseed{\the\count255}
+%\pgfmathsetseed{\randomseed}  % done later
+
+\usetikzlibrary{calc,arrows,spy}
+
+\tikzset{%
+          myemph/.style={#1!70,line width=1.5pt},
+          myarrow/.style={pos=0.55},
+}
+
+\newcommand{\myarrow}[1][0]{%
+\tikz\draw[-triangle 90] (0,0) -- (#1:0.01pt);
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcount\graphdepth
+% We use a TeX counter because LaTeX's counters (\newcounter) are always
+% modified globally whereas we need local decrement within each recursion
+% branch.
+
+% Set \curLen and \recFactor prior to calling \drawGraph!
+%
+% The generated graph is centered at (0,0) and its maximal width and height
+% are both 2*\curLen. The number 0 < \recFactor <= 0.5 specifies the next
+% branch point of the graph: at (1-\recFactor)*\curLen distance from the
+% last branch point (which is the origin in the first recursion step).
+% Also \curLen of the next recursion step will be \recFactor*\curLen.
+%
+\newcommand\drawGraph[1]{ % \drawGraph{recursion depth}
+    \graphdepth #1\relax
+    \path (0,0) coordinate (cur\the\graphdepth);
+    \drawGraphElement[180,90,0,-90]
+}
+
+\newcommand\drawGraphElement[1][90,0,-90]{%
+    % \drawGraphElement[directions in degrees, comma separated]
+    %
+    \ifnum\graphdepth > 0% proceed in recursion
+        \foreach \angle in {#1}
+        {
+            \begin{scope}[rotate=\angle]
+                % draw current piece up to the next branch point
+                \pgfmathparse{\curLen*(1-\recFactor)}
+                \draw (cur\the\graphdepth) -- +(\pgfmathresult,0) 
+                    coordinate (tmp) ;
+                %
+                % decrement recursion level
+                \advance\graphdepth -1\relax
+                % update current branch point
+                \path (tmp) coordinate (cur\the\graphdepth) ;
+                % possibly adjust \recFactor (the default is no adjustment)
+                \adjustRecFactor
+                % recalculate piece length
+                \pgfmathsetmacro\curLen{\curLen*\recFactor}
+                %
+                % recurse
+                \drawGraphElement
+            \end{scope}
+        
+        }
+    \else % recursion ends
+        % draw last part of the current piece
+        \draw (cur\the\graphdepth) -- +(\curLen,0) ;
+    \fi
+}
+
+\let\adjustRecFactor=\relax
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+How \verb|\drawGraph{n}| unfolds:
+\begin{center}
+    %
+    \pgfmathsetmacro\curLen{1.5}
+    \pgfmathsetmacro\recFactor{1.0/3.0}
+    %
+    \begin{tikzpicture}
+        \foreach \j in {1,2,3}
+        {
+            \begin{scope}[shift={(2.75*\curLen*\j,0)}]
+                \expandafter\drawGraph \j
+                \path (0,\curLen) ++(0,0.5) node {$n=\j$} ;
+            \end{scope}
+        }
+    \end{tikzpicture}
+\end{center}
+
+\vspace{1cm}
+
+\verb|\drawGraph{5}| with highlighted parts and demonstration of
+Ti\textit{k}Z's \texttt{spy} library:
+
+\begin{center}
+    %
+    \pgfmathsetmacro\curLen{5.0}
+    \pgfmathsetmacro\recFactor{1.0/2.5}
+    %
+    \begin{tikzpicture}[%
+        spy using overlays={circle, magnification=3, size=5cm}
+    ]
+        %
+        \begin{scope}
+            \pgfmathparse{\curLen*(1-\recFactor)}
+            \coordinate (A) at (-\pgfmathresult,0);
+            \coordinate (B) at ( \pgfmathresult,0);
+            \coordinate (C) at (0,-\pgfmathresult);
+            \coordinate (D) at (0, \pgfmathresult);
+            
+            \foreach \from/\to in {{(A)/(0,0)},{(0,0)/(B)}}
+            {
+                \draw [myemph=red] \from--\to
+                    node [myarrow,label={above:a}] {\myarrow[0]} ;
+            }
+            \foreach \from/\to in {{(C)/(0,0)},{(0,0)/(D)}}
+            {
+                \draw [myemph=blue] \from--\to
+                    node [myarrow,label={right:b}] {\myarrow[90]} ;
+            }
+        \end{scope}
+        
+        \coordinate (magni) at
+            ($ {\curLen*(1-\recFactor)}*(1,0)%
+              +{\curLen*\recFactor*(1-\recFactor)}*(0,1)$) ;
+              
+        \begin{scope}[shift={(magni)}]
+            \pgfmathparse{\curLen*(\recFactor^2)*(1-\recFactor)}
+            \coordinate (A) at (-\pgfmathresult,0);
+            \coordinate (B) at ( \pgfmathresult,0);
+            \coordinate (D) at (0, \pgfmathresult);
+            \pgfmathparse{\curLen*\recFactor*(1-\recFactor)}
+            \coordinate (C) at (0,-\pgfmathresult);
+            
+            \foreach \from/\to in {{(A)/(0,0)},{(0,0)/(B)}}
+            {
+                \draw [myemph=red] \from--\to
+                    node [pos=0.65] {\myarrow[0]} ;
+            }
+            \foreach \from/\to in {{(C)/(0,0)},{(0,0)/(D)}}
+            {
+                \draw [myemph=blue] \from--\to
+                    node [pos=0.75] {\myarrow[90]} ;
+            }
+        \end{scope}
+        
+        \drawGraph{5}
+        
+        \spy [yellow] on (magni) in node at (\curLen*1.3,0.7*\curLen) ;
+    \end{tikzpicture}
+\end{center}
+
+\vfill
+The next page has the width of DIN~A2 paper and shows a graph
+at recursion level~9:
+
+\newpage
+\KOMAoptions{paper=42cm:44cm,pagesize}
+\recalctypearea
+%
+\vspace*{-1.5cm}
+\centering
+\makebox[0pt]{%
+    %
+    \pgfmathsetmacro\curLen{0.97} % (note that we set 'x' and 'y' of the
+                                  % tikzpicture environment to (almost)
+                                  % half the page width)
+    \pgfmathsetmacro\recFactor{0.485}
+    % to achieve a better result we decrease the \recFactor with
+    % each recursion step:
+    \def\adjustRecFactor{%
+        \pgfmathsetmacro\recFactor{\recFactor-0.01}}
+    %
+    \begin{tikzpicture}[x=0.44\paperwidth, y=0.44\paperwidth]
+        \drawGraph{9}
+        %\drawGraph{1}
+    \end{tikzpicture}%
+}
+
+\let\adjustRecFactor=\relax
+
+%%%%%%%%%%
+
+\newpage
+\KOMAoptions{paper=a4,pagesize}
+\recalctypearea
+%
+And just for fun: some ``random art'' via \verb|\drawGraphElement|~\ldots
+\begin{center}
+    \pgfmathsetmacro\curLen{5}
+    \pgfmathsetmacro\recFactor{0.4}
+    \LetLtxMacro{\dGE}{\drawGraphElement}
+    %
+    \newcommand{\randomAngles}[1]{%
+        \begingroup%
+        \pgfmathsetmacro\n{random(#1)}%
+        \gdef\angles##1{}%
+        \foreach \j in {1,...,\n} {%
+            \pgfmathparse{random(0,359)}\xdef\angles{\angles,\pgfmathresult}}%
+        \endgroup%
+    }
+    %
+    \newcommand{\RR}{%
+        \begin{tikzpicture}
+            \randomAngles{2,10} % generates 2--10 random angles
+            \pgfmathsetmacro\depth{random(2,4)}
+            \expandafter\graphdepth\depth\relax
+            \edef\zz{\unexpanded{\renewcommand\drawGraphElement}%
+                {\noexpand\dGE[\angles]}%
+            }\zz
+            \path (0,0) coordinate (cur\the\graphdepth);
+            \drawGraphElement
+        \end{tikzpicture}%
+    }
+    
+    \vfill
+    
+    \pgfmathsetseed{37}
+    \RR
+    
+    \vfill
+    
+    \pgfmathsetseed{144}
+    \RR
+    \hfill
+    \pgfmathsetseed{63}
+    \raisebox{1.5cm}{\RR}
+    \hfill
+    \pgfmathsetseed{48}
+    \RR
+    
+    \newpage
+    \pgfmathsetseed{\randomseed}
+    %
+    \RR
+    
+    \vfill
+    
+    \RR
+\end{center}
+
+\end{document}

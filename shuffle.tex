@@ -1,0 +1,146 @@
+\documentclass{tixtex}
+\hypersetup{pdftitle={shuffles}}
+
+\tikzset{%
+    Dline/.style={line width=2pt, color=blue},
+    Dgrid/.style={line width=0.3pt, color=black!40}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% internal layer
+%%%%%%%%%%%%%%%%
+
+% \shuf{current link}{steps left to take [U]p}{steps leftto take [R]ight}
+%
+\newcommand{\shuf}[3]{%  
+    \ifnum#2 < 1 % no more Us
+        \ifnum#3 < 1 % no more Rs
+            % recursion ends, add link to the 'list' of links
+            \xdef\links{%
+                \unexpanded\expandafter{\links}%
+                \noexpand\LINK\unexpanded{#1}\noexpand\ENDLINK%
+            }
+        \else % more Rs
+            \shuf{\RR#1}{0}{\numexpr#3-1\relax}
+        \fi
+    \else % more Us
+        \ifnum#3 < 1 % no more Rs
+            \shuf{\UU#1}{\numexpr#2-1\relax}{0}
+        \else % more Rs
+            % 'normal' recursion step:
+            % recurse in both directions
+            \shuf{\UU#1}{\numexpr#2-1\relax}{#3}
+            \shuf{\RR#1}{#2}{\numexpr#3-1\relax}
+        \fi
+    \fi
+}
+
+\def\processlink\LINK#1\ENDLINK{%
+    \ifx\NOMORELINKS#1
+        \relax
+    \else
+        \drawlink{#1}
+        \xdef\ithlink{\numexpr\ithlink+1\relax}
+        \expandafter\processlink
+    \fi
+}
+
+% graphical layer
+%%%%%%%%%%%%%%%%%
+\newcommand{\RR}{-- ++(0:\stepsize)}
+\newcommand{\UU}{-- ++(90:\stepsize)}
+
+\newcommand{\drawlink}[1]{
+    \pgfmathsetlengthmacro{\xshiftwidth}{%
+        mod(\ithlink,\cols)*(\xdim*\stepsize+\xspacing)%
+    }
+    \pgfmathsetlengthmacro{\yshiftheight}{%
+        floor(\ithlink/\cols)*(\ydim*\stepsize+\yspacing)%
+    }
+    %
+    \begin{scope}[xshift=\xshiftwidth,yshift=-\yshiftheight]
+        \draw [step=\stepsize,Dgrid] (0,0) grid (\xdim*\stepsize,\ydim*\stepsize);
+        \draw [Dline] (0,0)
+            #1
+        ;
+    \end{scope}
+}
+
+% frontend layer
+%%%%%%%%%%%%%%%%
+
+% Set the macros
+%     \width      total (maximal) width of a row
+%     \stepsize   length of a single horizontal or vertical step
+%     \xspacing   gap size between each lattice in the same row
+%     \yspacing   gap size between rows
+% prior to calling \shuffle. (See below for examples.)
+%
+% \shuffle{lattice height}{lattice width}
+%
+\newcommand{\shuffle}[2]{
+    \gdef\ydim{#1}\gdef\xdim{#2}
+    \gdef\links{}
+    \shuf{}{#1}{#2}
+    \gdef\ithlink{0}
+    \pgfmathtruncatemacro{\cols}{%
+          (\width - \xdim*\stepsize)    %
+        / (\xdim*\stepsize + \xspacing) %
+        + 1                             %
+    }
+    \expandafter\processlink\links\LINK\NOMORELINKS\ENDLINK
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+A $(p,q)$-shuffle is a shortest path through a $p\times q$ lattice
+(from one edge to the diagonally opposite one where steps are allowed
+horizontally and vertically).\footnote{%
+    \url{http://ncatlab.org/nlab/show/shuffle}}
+The macro \verb|\shuffle| draws all shuffles through a specified lattice,
+e.\,g. \verb|\shuffle{2}{2}| and \verb|\shuffle{2}{3}|:
+
+\vspace{1cm}
+
+\begin{center}
+    \makebox[\textwidth]{%
+    \begin{tikzpicture}
+        \newcommand{\width}{1.2\textwidth}
+        \newcommand{\stepsize}{1cm}
+        \newcommand{\xspacing}{1.0cm}
+        \newcommand{\yspacing}{0pt}
+        %
+        \shuffle{2}{2}
+    \end{tikzpicture}%
+    }
+
+    \vspace{2cm}
+
+    \begin{tikzpicture}
+        \newcommand{\width}{1.03\textwidth}
+        \newcommand{\stepsize}{1cm}
+        \newcommand{\xspacing}{1.0cm}
+        \newcommand{\yspacing}{0.8cm}
+        %
+        \shuffle{2}{3}
+    \end{tikzpicture}
+\end{center}
+
+\newpage
+This page shows all shuffles through a $4\times 4$ lattice:
+
+\vspace{0.5cm}
+
+\begin{center}
+    \begin{tikzpicture}
+        \newcommand{\width}{\textwidth}
+        \newcommand{\stepsize}{3mm}
+        \newcommand{\xspacing}{1.0cm}
+        \newcommand{\yspacing}{0.8cm}
+        %
+        \shuffle{4}{4}
+    \end{tikzpicture}
+\end{center}
+\end{document}
